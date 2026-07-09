@@ -1,4 +1,26 @@
 import os
+from typing import Any
+
+schema_write_file: dict[str, Any] = {
+    "type": "function",
+    "function": {
+        "name": "write_file",
+        "description": "Writes content to a specified file relative to the working directory, creating directories as needed",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "file_path": {
+                    "type": "string",
+                    "description": "Path to the file to write to, relative to the working directory",
+                },
+                "content": {
+                    "type": "string",
+                    "description": "Content to write to the file",
+                },
+            },
+        },
+    },
+}
 
 
 def write_file(working_directory: str, file_path: str, content: str) -> str:

@@ -1,9 +1,33 @@
+import subprocess
+import os
+from typing import Any
+
+schema_run_python_file: dict[str, Any] = {
+    "type": "function",
+    "function": {
+        "name": "run_python_file",
+        "description": "Executes a specified Python file relative to the working directory, optionally with command-line arguments, and returns its output",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "file_path": {
+                    "type": "string",
+                    "description": "Path to the Python file to execute, relative to the working directory",
+                },
+                "args": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Optional list of command-line arguments to pass to the Python script",
+                },
+            },
+        },
+    },
+}
+
+
 def run_python_file(
     working_directory: str, file_path: str, args: list[str] | None = None
 ) -> str:
-    import subprocess
-    import os
-
     try:
         work_dir_abs_path = os.path.abspath(working_directory)
         file_abs_path = os.path.join(work_dir_abs_path, file_path)

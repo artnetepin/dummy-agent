@@ -1,25 +1,46 @@
 import argparse
 import os
+import sys
 from typing import Any
 
 from dotenv import load_dotenv
 from openai import OpenAI
 
+from prompts import system_prompt
+from call_function import available_functions, call_function
 
-def generate_content(client: OpenAI, messages: list[Any], is_verbose: bool) -> None:
+
+def generate_content(client: OpenAI, messages: list[Any], is_verbose: bool) -> str | None:
     response = client.chat.completions.create(
         model="openrouter/free",
         messages=messages,
+        tools=available_functions,  # type: ignore[arg-type]
     )
     if not response.usage:
         raise RuntimeError("No usage information in response")
 
     if is_verbose:
-        print("User prompt: ", messages[0]["content"])
         print("Prompt tokens: ", response.usage.prompt_tokens)
         print("Response tokens: ", response.usage.completion_tokens)
-    print("Response: ")
-    print(response.choices[0].message.content)
+
+    message = response.choices[0].message
+    messages.append(message)
+
+    if not message.tool_calls:
+        return message.content
+
+    for tool_call in message.tool_calls:
+        if tool_call.type != "function":
+            continue
+
+        result_message = call_function(tool_call, verbose=is_verbose)
+
+        if is_verbose:
+            print(f"-> {result_message['content']}")
+
+        messages.append(result_message)
+
+    return None
 
 
 def main():
@@ -39,11 +60,26 @@ def main():
         api_key=api_key,
     )
     messages: list[dict[str, str]] = [
+        {"role": "system", "content": system_prompt},
         {"role": "user", "content": args.user_prompt},
     ]
     is_verbose = args.verbose
 
-    generate_content(client, messages, is_verbose)
+    if is_verbose:
+        print("User prompt: ", args.user_prompt)
+
+    for _ in range(20):
+        try:
+            final_response = generate_content(client, messages, args.verbose)
+            if final_response:
+                print("Final response:")
+                print(final_response)
+                return
+        except Exception as e:
+            print(f"Error in generate_content: {e}")
+
+    print(f"Maximum iterations ({20}) reached")
+    sys.exit(1)
 
 
 if __name__ == "__main__":

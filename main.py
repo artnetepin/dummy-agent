@@ -1,11 +1,12 @@
 import argparse
 import os
+from typing import Any
 
 from dotenv import load_dotenv
 from openai import OpenAI
 
 
-def generate_content(client, messages, is_verbose):
+def generate_content(client: OpenAI, messages: list[Any], is_verbose: bool) -> None:
     response = client.chat.completions.create(
         model="openrouter/free",
         messages=messages,
@@ -29,14 +30,15 @@ def main():
 
     parser = argparse.ArgumentParser(description="Chatbot")
     parser.add_argument("user_prompt", type=str, help="User prompt")
-    parser.add_argument("--verbose", action="store_true", help="Enable verbose output")
+    parser.add_argument("--verbose", action="store_true",
+                        help="Enable verbose output")
     args = parser.parse_args()
 
     client = OpenAI(
         base_url="https://openrouter.ai/api/v1",
         api_key=api_key,
     )
-    messages = [
+    messages: list[dict[str, str]] = [
         {"role": "user", "content": args.user_prompt},
     ]
     is_verbose = args.verbose

@@ -14,17 +14,18 @@ def run_python_file(
 
         if not os.path.isfile(target_file):
             return f'Error: "{file_path}" does not exist or is not a regular file'
-        
+
         if not target_file.endswith(".py"):
             return f'Error: "{file_path}" is not a Python file'
 
         command = ["python", target_file] + (args if args else [])
-        result = subprocess.run(command, cwd=work_dir_abs_path, capture_output=True, text=True, timeout=30)
+        result = subprocess.run(
+            command, cwd=work_dir_abs_path, capture_output=True, text=True, timeout=30)
 
         output_string = ''
 
         if result.returncode != 0:
-           output_string += f'Process exited with code {result.returncode}\n'
+            output_string += f'Process exited with code {result.returncode}\n'
 
         if len(result.stdout) == 0 and len(result.stderr) == 0:
             output_string += 'No output produced.\n'
